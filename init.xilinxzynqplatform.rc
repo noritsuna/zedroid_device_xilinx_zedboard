@@ -1,0 +1,36 @@
+on fs
+    mkdir /storage/sdcard 0777 shell shell
+
+    mount_all /fstab.xilinxzynqplatform
+
+    mkdir /data/emulated 0555 root root
+    mkdir /mnt/shell 0555 root root
+    mkdir /data/media 0700 media_rw media_rw
+
+    # Support legacy paths
+    symlink /storage/sdcard /sdcard
+    symlink /storage/sdcard /mnt/sdcard
+
+
+on init
+    export EXTERNAL_STORAGE /storage/sdcard
+#    export MEDIA_STORAGE /data/media
+    export EMULATED_STORAGE_SOURCE /data/emulated
+    export EMULATED_STORAGE_TARGET /data/emulated
+
+on boot
+    write /sys/kernel/mm/ksm/pages_to_scan 100
+    write /sys/kernel/mm/ksm/sleep_millisecs 500
+    write /sys/kernel/mm/ksm/run 1
+
+
+# virtual sdcard daemon running as media_rw (1023)
+#service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /mnt/shell/media /data/emulated 
+#    class late_start
+
+service swapinit /sbin/swapinit.sh
+    class main
+    user root
+    group root
+    oneshot
+
